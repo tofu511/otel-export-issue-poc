@@ -48,6 +48,7 @@ fn init_tracer() -> Tracer {
 #[instrument]
 fn foo() {
     tracing::info!("inside foo");
+    bar();
 }
 
 #[instrument]
@@ -59,7 +60,6 @@ fn bar() {
 async fn main() {
     init_subscriber();
     foo();
-    bar();
 
     shutdown_tracer_provider();
 }
