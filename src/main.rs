@@ -22,10 +22,6 @@ fn init_subscriber() {
 }
 
 fn init_tracer() -> Tracer {
-    let honeycomb_key =
-        std::env::var("HONEYCOMB_API_KEY").expect("`HONEYCOMB_API_KEY` must be set");
-    let mut map = MetadataMap::with_capacity(1);
-    map.insert("x-honeycomb-team", honeycomb_key.try_into().unwrap());
 
     opentelemetry_otlp::new_pipeline()
         .tracing()
@@ -35,8 +31,7 @@ fn init_tracer() -> Tracer {
         .with_exporter(
             opentelemetry_otlp::new_exporter()
                 .tonic()
-                .with_metadata(map)
-                .with_endpoint("https://api.honeycomb.io/api/traces")
+                .with_endpoint("http://localhost:4317/api/traces")
                 .with_timeout(std::time::Duration::from_secs(5)),
         )
         .install_batch(opentelemetry_sdk::runtime::Tokio)
