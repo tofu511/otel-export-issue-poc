@@ -36,24 +36,23 @@ fn init_tracer() -> Tracer {
         )
         .install_batch(opentelemetry_sdk::runtime::Tokio)
         .unwrap()
-        .tracer("otel-export-issue-poc")
 }
 
 #[instrument]
-fn foo() {
+async fn foo() {
     tracing::info!("inside foo");
+    bar().await;
 }
 
 #[instrument]
-fn bar() {
+async fn bar() {
     tracing::info!("inside bar");
 }
 
 #[tokio::main]
 async fn main() {
     init_subscriber();
-    foo();
-    bar();
+    foo().await;
 
     shutdown_tracer_provider();
 }
