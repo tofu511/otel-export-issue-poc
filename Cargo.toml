@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-opentelemetry = "0.26.0"
-opentelemetry-otlp = "0.26.0"
-opentelemetry_sdk = { version = "0.26.0", features = ["rt-tokio"] }
-tracing-opentelemetry = "0.27.0"
-tonic = "0.12.3"
+opentelemetry = "0.23.0"
+opentelemetry-otlp = { version = "0.16.0", features = ["tls-roots"] }
+opentelemetry_sdk = { version = "0.23.0", features = ["rt-tokio"] }
+tracing-opentelemetry = "0.24.0"
+tonic = { version = "0.11.0", features = ["tls-roots"] }
 tracing-subscriber = "0.3.18"
 tracing = "0.1.40"
-tokio = { version = "1.41.0", features = ["rt", "rt-multi-thread"] }
+tokio = { version = "1.38.1", features = ["rt", "rt-multi-thread", "macros"] }

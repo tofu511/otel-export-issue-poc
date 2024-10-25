@@ -35,13 +35,14 @@ fn init_tracer() -> Tracer {
         .with_exporter(
             opentelemetry_otlp::new_exporter()
                 .tonic()
+                .with_tls_config(tonic::transport::ClientTlsConfig::new())
                 .with_metadata(map)
                 .with_endpoint("https://api.honeycomb.io/api/traces")
                 .with_timeout(std::time::Duration::from_secs(5)),
         )
         .install_batch(opentelemetry_sdk::runtime::Tokio)
         .unwrap()
-        .tracer("otel-export-issue-poc")
+
 }
 
 #[instrument]
