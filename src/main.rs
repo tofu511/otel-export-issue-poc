@@ -2,8 +2,9 @@ use opentelemetry::global::shutdown_tracer_provider;
 use opentelemetry::trace::TracerProvider;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_sdk::trace::Tracer;
+use opentelemetry_sdk::trace::{BatchConfig, BatchConfigBuilder, Tracer};
 use opentelemetry_sdk::Resource;
+use std::time::Duration;
 use tonic::metadata::MetadataMap;
 use tracing::instrument;
 use tracing_subscriber::fmt::format::FmtSpan;
@@ -15,7 +16,7 @@ fn init_subscriber() {
     let otel = tracing_opentelemetry::layer().with_tracer(init_tracer());
 
     Registry::default()
-        .with(tracing_subscriber::fmt::layer().with_span_events(FmtSpan::NEW | FmtSpan::EXIT))
+        // .with(tracing_subscriber::fmt::layer().with_span_events(FmtSpan::NEW | FmtSpan::EXIT))
         .with(tracing_subscriber::filter::LevelFilter::DEBUG)
         .with(otel)
         .init();
@@ -35,9 +36,15 @@ fn init_tracer() -> Tracer {
         .with_exporter(
             opentelemetry_otlp::new_exporter()
                 .tonic()
+                .with_tls_config(tonic::transport::ClientTlsConfig::new().with_native_roots())
                 .with_metadata(map)
                 .with_endpoint("https://api.honeycomb.io/api/traces")
                 .with_timeout(std::time::Duration::from_secs(5)),
+        )
+        .with_batch_config(
+            BatchConfigBuilder::default()
+                .with_scheduled_delay(Duration::from_millis(100))
+                .build(),
         )
         .install_batch(opentelemetry_sdk::runtime::Tokio)
         .unwrap()
@@ -45,20 +52,21 @@ fn init_tracer() -> Tracer {
 }
 
 #[instrument]
-fn foo() {
+async fn foo() {
     tracing::info!("inside foo");
-    bar();
+    bar().await;
 }
 
 #[instrument]
-fn bar() {
+async fn bar() {
     tracing::info!("inside bar");
 }
 
 #[tokio::main]
 async fn main() {
     init_subscriber();
-    foo();
+    foo().await;
 
+    tokio::time::sleep(Duration::from_secs(2)).await;
     shutdown_tracer_provider();
 }
